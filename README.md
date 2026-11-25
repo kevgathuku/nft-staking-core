@@ -101,10 +101,29 @@ The `Stake` and `Unstake` contexts both verify:
 
 ---
 
+## Running the tests
+
+Tests run against Surfnet (the suite uses the `surfnet_timeTravel` RPC to warp past the freeze period — stock `solana-test-validator` doesn't have it). Order matters: validator → build → deploy → tests (the ledger is ephemeral, so redeploy after every validator restart).
+
+```bash
+# 1. start surfnet (its own terminal)
+surfpool start -n mainnet   # forks mainnet so the real MPL Core program exists
+
+# 2. build (must be --arch v2: anchor defaults to v3, which this Surfpool runtime rejects)
+anchor build --arch v2
+
+# 3. deploy
+anchor deploy
+
+# 4. run the suite (env required — direct mocha has no anchor-test provider)
+ANCHOR_PROVIDER_URL=http://127.0.0.1:8899 ANCHOR_WALLET=~/.config/solana/id.json \
+  yarn run ts-mocha -p ./tsconfig.json -t 1000000 "tests/**/*.ts"
+```
+
 ## Dependencies
 
 ```toml
-anchor-lang = "0.32.1"
-anchor-spl = "0.32.1"
+anchor-lang = "0.32.3"
+anchor-spl = "0.32.3"
 mpl-core = { version = "0.11.1", features = ["anchor"] }
 ```
